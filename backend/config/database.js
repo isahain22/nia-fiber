@@ -1,17 +1,20 @@
-import sqlite3 from 'sqlite3';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+const sqlite3 = require('sqlite3');
+const path = require('path');
+const fs = require('fs');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Ensure database directory exists
+const dbDir = path.join(__dirname, '..', 'database');
+if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+}
 
-const dbPath = join(__dirname, '..', 'database', 'fibertrack.db');
+const dbPath = path.join(dbDir, 'fibertrack.db');
 
-export const db = new sqlite3.Database(dbPath, (err) => {
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error opening database:', err.message);
     } else {
-        console.log('Connected to SQLite database.');
+        console.log('✅ Connected to SQLite database:', dbPath);
         initializeDatabase();
     }
 });
@@ -31,7 +34,6 @@ function initializeDatabase() {
             date_tested DATETIME DEFAULT CURRENT_TIMESTAMP,
             status TEXT DEFAULT 'tested'
         )`,
-
         `CREATE TABLE IF NOT EXISTS cables (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             cable_id TEXT UNIQUE NOT NULL,
@@ -49,19 +51,15 @@ function initializeDatabase() {
             status TEXT DEFAULT 'in_progress',
             date_created DATETIME DEFAULT CURRENT_TIMESTAMP
         )`,
-
         `CREATE TABLE IF NOT EXISTS cable_fibers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             cable_id TEXT NOT NULL,
             fiber_id TEXT NOT NULL,
             standard_color TEXT NOT NULL,
             position INTEGER NOT NULL,
-            FOREIGN KEY (cable_id) REFERENCES cables (cable_id) ON DELETE CASCADE,
-            FOREIGN KEY (fiber_id) REFERENCES bare_fibers (fiber_id) ON DELETE CASCADE,
-            UNIQUE(cable_id, position),
-            UNIQUE(cable_id, fiber_id)
+            FOREIGN KEY (cable_id) REFERENCES cables (cable_id),
+            FOREIGN KEY (fiber_id) REFERENCES bare_fibers (fiber_id)
         )`,
-
         `CREATE TABLE IF NOT EXISTS qc_checks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             cable_id TEXT NOT NULL,
@@ -72,17 +70,25 @@ function initializeDatabase() {
             optical_length REAL NOT NULL,
             status TEXT NOT NULL,
             remarks TEXT,
-            FOREIGN KEY (cable_id) REFERENCES cables (cable_id) ON DELETE CASCADE
+            FOREIGN KEY (cable_id) REFERENCES cables (cable_id)
         )`
     ];
 
+    let tablesCreated = 0;
     tables.forEach((sql, index) => {
         db.run(sql, (err) => {
             if (err) {
-                console.error(`Error creating table ${index + 1}:`, err.message);
+                console.error(`❌ Error creating table ${index + 1}:`, err.message);
             } else {
-                console.log(`Table ${index + 1} created/verified successfully`);
+                tablesCreated++;
+                console.log(`✅ Table ${index + 1} created successfully`);
+            }
+            
+            if (tablesCreated === tables.length) {
+                console.log('🎉 All database tables initialized successfully!');
             }
         });
     });
 }
+
+module.exports = { db };
