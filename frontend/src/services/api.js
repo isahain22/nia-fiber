@@ -12,6 +12,7 @@ const api = axios.create({
 export const bareFiberAPI = {
   create: (data) => api.post('/bare-fibers', data),
   getAll: () => api.get('/bare-fibers'),
+  getAvailable: () => api.get('/bare-fibers/available'),
 };
 
 export const healthCheck = () => api.get('/health');

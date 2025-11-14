@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import BareFiberInput from './components/BareFiberInput'
-import CableCreation from './components/CableCreation'
+import BareFiberQC from './components/BareFiberQC'
+import BufferingStation from './components/BufferingStation'
+import PreStranding from './components/PreStranding'
+import StrandingQC from './components/StrandingQC'
+import SheathingQC from './components/SheathingQC'
 import CableSearch from './components/CableSearch'
-import QCcheck from './components/QCcheck'
 import ReportGenerator from './components/ReportGenerator'
 import { healthCheck } from './services/api'
 import './App.css'
@@ -27,8 +29,10 @@ function App() {
   const navigation = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'bare-fiber', label: 'Bare Fiber QC' },
-    { id: 'cable-creation', label: 'Buffering Station' },
-    { id: 'qc-check', label: 'Final QC' },
+    { id: 'buffering', label: 'Buffering Station' },
+    { id: 'pre-stranding', label: 'Pre-Stranding' },
+    { id: 'stranding-qc', label: 'Stranding QC' },
+    { id: 'sheathing-qc', label: 'Sheathing QC' },
     { id: 'search', label: 'Search Cables' },
     { id: 'reports', label: 'Reports' }
   ]
@@ -41,14 +45,6 @@ function App() {
     }
   }
 
-  const getStatusText = () => {
-    switch (apiStatus) {
-      case 'connected': return 'API Connected'
-      case 'disconnected': return 'API Disconnected'
-      default: return 'Checking API...'
-    }
-  }
-
   return (
     <div className="app">
       <header className="app-header">
@@ -56,10 +52,10 @@ function App() {
           <div className="header-main">
             <h1>NIA FIBER QC TRACK</h1>
             <div className="status-indicator" style={{ backgroundColor: getStatusColor() }}>
-              {getStatusText()}
+              {apiStatus === 'connected' ? 'API Connected' : apiStatus === 'disconnected' ? 'API Disconnected' : 'Checking API...'}
             </div>
           </div>
-          <p>Fiber Optic Quality Control Management System</p>
+          <p>Fiber Optic Production Quality Control Management System</p>
         </div>
       </header>
       
@@ -77,9 +73,11 @@ function App() {
 
       <main className="app-main">
         {currentView === 'dashboard' && <Dashboard />}
-        {currentView === 'bare-fiber' && <BareFiberInput />}
-        {currentView === 'cable-creation' && <CableCreation />}
-        {currentView === 'qc-check' && <QCcheck />}
+        {currentView === 'bare-fiber' && <BareFiberQC />}
+        {currentView === 'buffering' && <BufferingStation />}
+        {currentView === 'pre-stranding' && <PreStranding />}
+        {currentView === 'stranding-qc' && <StrandingQC />}
+        {currentView === 'sheathing-qc' && <SheathingQC />}
         {currentView === 'search' && <CableSearch />}
         {currentView === 'reports' && <ReportGenerator />}
       </main>
@@ -88,49 +86,38 @@ function App() {
 }
 
 function Dashboard() {
-  const [stats, setStats] = useState({
-    fibersTested: 0,
-    cablesInProgress: 0,
-    qcPassed: 0,
-    totalProduction: 0
-  })
-
-  useEffect(() => {
-    setStats({
-      fibersTested: 24,
-      cablesInProgress: 8,
-      qcPassed: 12,
-      totalProduction: 156
-    })
-  }, [])
-
   return (
     <div className="dashboard">
       <h2>Production Dashboard</h2>
-      
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">🔬</div>
-          <h3>Fibers Tested Today</h3>
-          <p className="stat-number">{stats.fibersTested}</p>
+      <div className="production-flow">
+        <div className="flow-step">
+          <div className="step-number">1</div>
+          <h3>Bare Fiber QC</h3>
+          <p>Measure individual fibers</p>
         </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">⚡</div>
-          <h3>Cables in Progress</h3>
-          <p className="stat-number">{stats.cablesInProgress}</p>
+        <div className="flow-arrow">→</div>
+        <div className="flow-step">
+          <div className="step-number">2</div>
+          <h3>Buffering</h3>
+          <p>Bundle 12 fibers into tubes</p>
         </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">✅</div>
-          <h3>QC Passed Today</h3>
-          <p className="stat-number">{stats.qcPassed}</p>
+        <div className="flow-arrow">→</div>
+        <div className="flow-step">
+          <div className="step-number">3</div>
+          <h3>Pre-Stranding</h3>
+          <p>Select tubes for stranding</p>
         </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">📊</div>
-          <h3>Total Production (km)</h3>
-          <p className="stat-number">{stats.totalProduction}</p>
+        <div className="flow-arrow">→</div>
+        <div className="flow-step">
+          <div className="step-number">4</div>
+          <h3>Stranding QC</h3>
+          <p>Measure up to 12 tubes</p>
+        </div>
+        <div className="flow-arrow">→</div>
+        <div className="flow-step">
+          <div className="step-number">5</div>
+          <h3>Sheathing QC</h3>
+          <p>Final cable measurements</p>
         </div>
       </div>
     </div>
